@@ -1,0 +1,123 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h1 class="mt-4 my-4 text-center text-success">Health Care Center</h1>
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3>Symptom Analyzer</h3>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('main.predict') }}" method="post">
+                        <div class="form-group mb-3">
+                            <label for="symptoms" class="form-label">Enter Your Symptoms:</label>
+                            <select class="form-control select2-multiple" id="symptomSelect" multiple="multiple" style="width: 100%">
+                                {% for symptom in symptoms %}
+                                <option value="{{ symptom }}">{{ symptom.replace('_', ' ').title() }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="hidden" name="symptoms" id="symptoms">
+                            <small class="form-text text-muted">Select all symptoms that apply to you.</small>
+                        </div>
+                        {% if message %}
+                            <div class="alert alert-warning">{{ message }}</div>
+                        {% endif %}
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary" id="startSpeechRecognition">
+                                <i class="fas fa-microphone"></i> Describe Symptoms by Voice
+                            </button>
+                            <div id="transcription" class="my-2 p-2 border rounded bg-light" style="min-height: 50px; display: none;"></div>
+                            <button type="submit" class="btn btn-danger btn-lg" id="predictBtn">Analyze Symptoms</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2-multiple').select2({
+            placeholder: "Type or select symptoms",
+            allowClear: true
+        });
+        
+        $('#predictBtn').click(function(e) {
+            e.preventDefault();
+            const selectedSymptoms = $('#symptomSelect').val();
+            if (!selectedSymptoms || selectedSymptoms.length === 0) {
+                alert('Please select at least one symptom');
+                return false;
+            }
+            $('#symptoms').val(selectedSymptoms);
+            $('form').submit();
+        });
+        
+        // Speech Recognition
+        const startSpeechBtn = document.getElementById('startSpeechRecognition');
+        const transcriptionDiv = document.getElementById('transcription');
+        
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            
+            startSpeechBtn.addEventListener('click', function() {
+                recognition.start();
+                startSpeechBtn.textContent = 'Listening...';
+                startSpeechBtn.disabled = true;
+                transcriptionDiv.style.display = 'block';
+                transcriptionDiv.textContent = 'Listening...';
+            });
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                transcriptionDiv.textContent = transcript;
+                
+                // Parse symptoms from speech
+                const symptoms = transcript.toLowerCase().split(' and ').join(',').split(',');
+                const cleanSymptoms = symptoms.map(s => s.trim());
+                
+                // Find matching symptoms in our list
+                const availableSymptoms = [];
+                {% for symptom in symptoms %}
+                    availableSymptoms.push("{{ symptom }}");
+                {% endfor %}
+                
+                const matchedSymptoms = [];
+                cleanSymptoms.forEach(spoken => {
+                    availableSymptoms.forEach(available => {
+                        if (available.includes(spoken) || spoken.includes(available)) {
+                            matchedSymptoms.push(available);
+                        }
+                    });
+                });
+                
+                // Set the matched symptoms in the select box
+                if (matchedSymptoms.length > 0) {
+                    $('#symptomSelect').val(matchedSymptoms).trigger('change');
+                }
+            };
+            
+            recognition.onend = function() {
+                startSpeechBtn.textContent = 'Describe Symptoms by Voice';
+                startSpeechBtn.disabled = false;
+            };
+            
+            recognition.onerror = function(event) {
+                startSpeechBtn.textContent = 'Describe Symptoms by Voice';
+                startSpeechBtn.disabled = false;
+                transcriptionDiv.textContent = 'Error occurred in recognition: ' + event.error;
+            };
+        } else {
+            startSpeechBtn.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3>Diagnosis Results</h3>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Predicted Condition: <span class="text-primary">{{ disease }}</span></h2>
+                    
+                    <div class="alert alert-light">
+                        <h4>Description:</h4>
+                        <p>{{ description }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h4>Recommended Medications</h4>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                {% for med in medications %}
+                                <li class="list-group-item">{{ med }}</li>
+                                {% endfor %}
+                            </ul>
+                            <div class="alert alert-warning mt-3">
+                                <i class="fas fa-exclamation-triangle"></i> Always consult with a healthcare professional before taking any medication.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h4>Recommended Precautions</h4>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                {% for precaution in precautions %}
+                                <li class="list-group-item">{{ precaution }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h4>Dietary Recommendations</h4>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                {% for diet in diets %}
+                                <li class="list-group-item">{{ diet }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-secondary text-white">
+                            <h4>Workout Recommendations</h4>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                {% for workout in workouts %}
+                                <li class="list-group-item">{{ workout }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 col-md-6 mx-auto">
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">Check Another Condition</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
